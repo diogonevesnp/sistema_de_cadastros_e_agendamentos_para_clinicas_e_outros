@@ -26,62 +26,67 @@ Este projeto representa a versão inicial da ideia, que poderá evoluir com melh
 independentes para cada paciente e implementação de novas funcionalidades.
 '''
 
-agendados = {}
+import json
+
 agendamentos = []
 print('<<< AGENDAMENTO DE CONSULTAS >>>')
 print('---------------------------------')
 
-while True:   
-     
-     try:
-        nome_digitado = input('Digite o seu primeiro nome: ').title()
-     except ValueError:
+while True:
+    # Correção do método de validação correta para entrda de Strings (.isalpha)
+    nome_digitado = input('Digite o seu primeiro nome: ').title()
+    if not nome_digitado.isalpha():
         print('Erro: Por favor digite apenas letras para o nome!')
         continue
 
-     try:
-        sobrenome_digitado = input('Sobrenome: ').title()
-     except ValueError:
+    sobrenome_digitado = input('Sobrenome: ').title()
+    if not sobrenome_digitado.isalpha():
         print('Erro: Por favor digite apenas letras para o sobrenome!')
         continue
 
-     try:
-         ddd_digitado = int(input('DDD: '))
-     except ValueError:
+    try:
+        ddd_digitado = int(input('DDD: '))
+    except ValueError:
         print('Erro: Por favor, digite apenas números inteiros.')
         continue
-     
-     try:
+
+    try:
         telefone_digitado = int(input('Número: '))
-     except ValueError:
-        print('Erro: Por favor digite apenas números e inteiros!')
+    except ValueError:
+        print('Erro: Por favor digite apenas números inteiros!')
         continue
-     try:
-        esp_digitado = input('Qual médico: ').title()
-     except ValueError:
-        print('Erro: Por favor digite apenas letras para o tipo de especialista!')
 
-     agendados ['Nome'] = nome_digitado
-     agendados ['Sobrenome'] = sobrenome_digitado
-     agendados ['DDD'] = ddd_digitado
-     agendados ['Telefone'] = telefone_digitado
-     agendados ['Especialista'] = esp_digitado
-     agendamentos.append(agendados.copy())
-
-     try:
-        res_usuario = str(input('Quer continuar? S/N')).upper()
-     except ValueError:
-        print('Erro por favor digite apenas letra!')   
+    esp_digitado = input('Qual médico: ').title()
+    if not esp_digitado.isalpha():
+        print('Erro: Por favor digite apenas letras para o especialista!')
         continue
-     
-     if res_usuario == 'N':
+
+    # Criar um novo dicionário para cada paciente
+    agendado = {
+        "Nome": nome_digitado,
+        "Sobrenome": sobrenome_digitado,
+        "DDD": ddd_digitado,
+        "Telefone": telefone_digitado,
+        "Especialista": esp_digitado
+    }
+    agendamentos.append(agendado)
+
+    res_usuario = input('Quer continuar? S/N: ').upper()
+    if res_usuario == 'N':
         break
-     
-     print()
-     
-if agendamentos:
-   print('\n <<< PACIENTES CADASTRADOS >>>') 
-   print('---------------------------------')
+    print()
 
-for agendamento in agendamentos:
-    print(f"Nome: {agendamento['Nome']} | Sobrenome: {agendamento['Sobrenome']} | DDD: {agendamento['DDD']} | Telefone: {agendamento['Telefone']} | Especialista: {agendamento['Especialista']}")
+# Exibir os cadastrados
+if agendamentos:
+    print('\n <<< PACIENTES CADASTRADOS >>>')
+    print('---------------------------------')
+    for agendamento in agendamentos:
+        print(f"Nome: {agendamento['Nome']} | Sobrenome: {agendamento['Sobrenome']} | "
+              f"DDD: {agendamento['DDD']} | Telefone: {agendamento['Telefone']} | "
+              f"Especialista: {agendamento['Especialista']}")
+
+# Salvar em arquivo JSON
+with open("agendamentos.json", "w", encoding="utf-8") as f:
+    json.dump(agendamentos, f, indent=4, ensure_ascii=False)
+
+print("\nAgendamentos salvos em 'agendamentos.json'")
