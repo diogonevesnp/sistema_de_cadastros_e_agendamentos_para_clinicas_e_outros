@@ -582,7 +582,7 @@ def excluir_paciente(pacientes, agendamentos):
     print("✅ Paciente (registro) excluído com sucesso!")
     return True # Sinaliza sucesso
 
-# --- Programa principal (ALTERADO) ---
+# --- Programa principal (COM A ALTERAÇÃO) ---
 def main():
     # Carrega ambas as listas no início
     dados = carregar_dados()
@@ -630,16 +630,16 @@ def main():
             # Antes de sair, faz um último save se necessário
             if dados_modificados:
                 salvar_dados(pacientes, agendamentos)
-                print("(Dados pendentes salvos.)")
+                # print("(Dados pendentes salvos.)") # <-- LINHA REMOVIDA
             print("Saindo... Até logo!")
             break
         else:
             print("Opção inválida, tente novamente.\n")
         
-        # NOVO: Salva os dados APENAS se alguma função (que retorna True) modificou os dados
+        # Salva os dados APENAS se alguma função (que retorna True) modificou os dados
         if dados_modificados:
             salvar_dados(pacientes, agendamentos)
-            print("(Dados salvos no disco.)")
+            # print("(Dados salvos no disco.)") # <-- LINHA REMOVIDA
 
 # Verifica se o script está sendo executado diretamente
 if __name__ == "__main__":
