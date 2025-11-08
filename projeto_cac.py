@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from datetime import datetime
 
 ARQUIVO = Path("agendamentos.json")
 
@@ -15,6 +16,27 @@ def salvar_agendamentos(agendamentos):
     with open(ARQUIVO, "w", encoding="utf-8") as f:
         json.dump(agendamentos, f, indent=4, ensure_ascii=False)
 
+# Função para validar data
+def validar_data(data_str):
+    try:
+        return datetime.strptime(data_str, "%d/%m/%Y").strftime("%d/%m/%Y")
+    except ValueError:
+        return None
+
+# Função para validar horário
+def validar_horario(hora_str):
+    try:
+        return datetime.strptime(hora_str, "%H:%M").strftime("%H:%M")
+    except ValueError:
+        return None
+
+# Função para formatar telefone
+def formatar_telefone(ddd, telefone):
+    numero = str(telefone).zfill(9)  # garante 9 dígitos
+    parte1 = numero[1:5]             # depois do 9
+    parte2 = numero[5:]              # últimos 4
+    return f"({ddd}) 9 {parte1}-{parte2}"
+
 # Função para cadastrar novo paciente
 def cadastrar(agendamentos):
     nome = input("Digite o primeiro nome: ").title()
@@ -27,29 +49,58 @@ def cadastrar(agendamentos):
         print("Erro: digite apenas letras para o sobrenome!")
         return
 
-    try:
-        ddd = int(input("DDD: "))
-    except ValueError:
-        print("Erro: digite apenas números inteiros para o DDD!")
+    data_nasc = input("Data de nascimento (DD/MM/AAAA): ")
+    data_nasc_valida = validar_data(data_nasc)
+    if not data_nasc_valida:
+        print("Erro: data inválida, use o formato DD/MM/AAAA!")
         return
 
-    try:
-        telefone = int(input("Número: "))
-    except ValueError:
-        print("Erro: digite apenas números inteiros para o telefone!")
+    estado = input("Estado (sigla, ex: PR): ").upper()
+    if len(estado) != 2 or not estado.isalpha():
+        print("Erro: estado deve ser a sigla de 2 letras (ex: SP, RJ, PR).")
         return
+
+    cidade = input("Cidade: ").title()
+    if not cidade.replace(" ", "").isalpha():
+        print("Erro: cidade deve conter apenas letras!")
+        return
+
+    endereco = input("Endereço (rua, número, bairro): ").title()
+
+    ddd = input("DDD (2 dígitos): ")
+    if not ddd.isdigit() or len(ddd) != 2:
+        print("Erro: o DDD deve conter exatamente 2 números!")
+        return
+    ddd = int(ddd)
+
+    numero = input("Número de celular (9 dígitos, ex: 9XXXXXXX): ")
+    if not numero.isdigit() or len(numero) != 9 or not numero.startswith("9"):
+        print("Erro: o número de celular deve ter 9 dígitos e começar com 9!")
+        return
+    telefone = int(numero)
 
     especialista = input("Qual médico: ").title()
     if not especialista.isalpha():
         print("Erro: digite apenas letras para o especialista!")
         return
 
+    horario = input("Horário da consulta (HH:MM): ")
+    horario_valido = validar_horario(horario)
+    if not horario_valido:
+        print("Erro: horário inválido, use o formato HH:MM (24h)!")
+        return
+
     agendado = {
         "Nome": nome,
         "Sobrenome": sobrenome,
+        "Data de Nascimento": data_nasc_valida,
+        "Estado": estado,
+        "Cidade": cidade,
+        "Endereço": endereco,
         "DDD": ddd,
         "Telefone": telefone,
-        "Especialista": especialista
+        "Especialista": especialista,
+        "Horário": horario_valido
     }
     agendamentos.append(agendado)
     salvar_agendamentos(agendamentos)
@@ -64,9 +115,12 @@ def listar(agendamentos):
     print("\n <<< PACIENTES CADASTRADOS >>>")
     print("---------------------------------")
     for agendamento in agendamentos:
-        print(f"Nome: {agendamento['Nome']} | Sobrenome: {agendamento['Sobrenome']} | "
-              f"DDD: {agendamento['DDD']} | Telefone: {agendamento['Telefone']} | "
-              f"Especialista: {agendamento['Especialista']}")
+        telefone_formatado = formatar_telefone(agendamento['DDD'], agendamento['Telefone'])
+        print(f"Nome: {agendamento['Nome']} {agendamento['Sobrenome']} | "
+              f"Nascimento: {agendamento['Data de Nascimento']} | Estado: {agendamento['Estado']} | "
+              f"Cidade: {agendamento['Cidade']} | Endereço: {agendamento['Endereço']} | "
+              f"Telefone: {telefone_formatado} | "
+              f"Especialista: {agendamento['Especialista']} | Horário: {agendamento['Horário']}")
     print()
 
 # ==============================
