@@ -2,27 +2,58 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-ARQUIVO = Path("agendamentos.json")
+# NOVO: O arquivo agora guarda um dicionário com pacientes E agendamentos
+ARQUIVO_DADOS = Path("clinica_dados.json")
 
 # --- Funções utilitárias ---
 
-def carregar_agendamentos():
-    if ARQUIVO.exists():
-        if ARQUIVO.stat().st_size == 0:
-            return []
-        try:
-            with open(ARQUIVO, "r", encoding="utf-8") as f:
-                dados = json.load(f)
-                return [d for d in dados if "CPF" in d]
-        except json.JSONDecodeError:
-            print(f"\nAviso: {ARQUIVO} está corrompido. Iniciando com uma lista limpa.\n")
-            return []
-    return []
+# ALTERADO: Carrega o novo formato de dados (dicionário)
+def carregar_dados():
+    """Carrega pacientes e agendamentos do arquivo JSON."""
+    dados_padrao = {"pacientes": [], "agendamentos": []}
+    if not ARQUIVO_DADOS.exists():
+        return dados_padrao # Retorna estrutura padrão se o arquivo não existe
 
-def salvar_agendamentos(agendamentos):
-    with open(ARQUIVO, "w", encoding="utf-8") as f:
-        json.dump(agendamentos, f, indent=4, ensure_ascii=False)
+    if ARQUIVO_DADOS.stat().st_size == 0:
+        return dados_padrao # Retorna estrutura padrão se o arquivo está vazio
 
+    try:
+        with open(ARQUIVO_DADOS, "r", encoding="utf-8") as f:
+            dados = json.load(f)
+            
+            # NOVO: Tentativa de migrar dados do formato antigo (lista)
+            if isinstance(dados, list):
+                print("!! Aviso: Detectado formato de arquivo antigo (lista).")
+                print("!! Movendo dados antigos para a lista de 'pacientes'.")
+                print("!! Por favor, recadastre os agendamentos.")
+                # Migra os dados antigos, assumindo que eram pacientes
+                migrados = {"pacientes": dados, "agendamentos": []}
+                # Garante que o campo 'NomeCompleto' exista
+                for p in migrados["pacientes"]:
+                    if "Nome" in p and "NomeCompleto" not in p:
+                        p["NomeCompleto"] = f"{p.get('Nome', '')} {p.get('Sobrenome', '')}".strip()
+                return migrados
+
+            # Carrega o formato de dicionário esperado
+            return {
+                "pacientes": dados.get("pacientes", []),
+                "agendamentos": dados.get("agendamentos", [])
+            }
+    except json.JSONDecodeError:
+        print(f"\n!! Erro: O arquivo {ARQUIVO_DADOS} está corrompido. Iniciando com dados limpos.\n")
+        return dados_padrao
+
+# ALTERADO: Salva o novo formato de dados (dicionário)
+def salvar_dados(pacientes, agendamentos):
+    """Salva as listas de pacientes e agendamentos no arquivo JSON."""
+    dados_completos = {
+        "pacientes": pacientes,
+        "agendamentos": agendamentos
+    }
+    with open(ARQUIVO_DADOS, "w", encoding="utf-8") as f:
+        json.dump(dados_completos, f, indent=4, ensure_ascii=False)
+
+# Funções de validação (sem alteração)
 def validar_data(data_str):
     try:
         return datetime.strptime(data_str, "%d/%m/%Y").strftime("%d/%m/%Y")
@@ -35,62 +66,88 @@ def validar_horario(hora_str):
     except ValueError:
         return None
 
-def formatar_telefone(ddd, telefone):
-    numero = str(telefone).zfill(9) 
-    parte1 = numero[1:5]
-    parte2 = numero[5:]
-    return f"({ddd}) 9 {parte1}-{parte2}"
+# NOVO: Função helper para buscar um paciente pelo CPF na lista de pacientes
+def buscar_paciente_por_cpf(cpf, pacientes):
+    """Retorna o dicionário do paciente se encontrado, senão None."""
+    for paciente in pacientes:
+        if paciente["CPF"] == cpf:
+            return paciente
+    return None
 
-# --- Helper de Impressão (ALTERADA) ---
-def imprimir_paciente_detalhado(agendamento, indice=None):
-    """Imprime um bloco formatado com os dados de um paciente."""
-    
+# NOVO: Função helper para imprimir dados de um PACIENTE (registro)
+def imprimir_paciente_registro(paciente, indice=None):
+    """Imprime um bloco formatado com os dados de registro de um paciente."""
     if indice:
         print(f"PACIENTE #{indice}")
     
-    telefone_formatado = formatar_telefone(agendamento['DDD'], agendamento['Telefone'])
-    largura_label = 19 # Aumentei um pouco a largura para os novos campos
+    largura_label = 19
+    print(f"  {'Nome Completo:':<{largura_label}} {paciente.get('NomeCompleto', 'N/A')}")
+    print(f"  {'CPF:':<{largura_label}} {paciente.get('CPF', 'N/A')}")
+    print(f"  {'Nascimento:':<{largura_label}} {paciente.get('Data de Nascimento', 'N/A')}")
+    print(f"  {'Contato:':<{largura_label}} {formatar_telefone(paciente.get('DDD', ''), paciente.get('Telefone', ''))}")
+    print(f"  {'Endereço:':<{largura_label}} {paciente.get('Endereço', 'N/A')}")
+    print(f"  {'Local:':<{largura_label}} {paciente.get('Cidade', 'N/A')} - {paciente.get('Estado', 'N/A')}")
+    print(f"  {'Data de Cadastro:':<{largura_label}} {paciente.get('DataCadastro', 'N/A')}")
+    print(f"  {'Última Modificação:':<{largura_label}} {paciente.get('UltimaModificacao', 'N/A')}")
+
+# NOVO: Função helper para imprimir dados de um AGENDAMENTO
+def imprimir_agendamento_detalhado(ag, indice=None):
+    """Imprime um bloco formatado com os dados de um agendamento."""
+    if indice:
+        print(f"AGENDAMENTO #{indice}")
     
-    print(f"  {'Nome completo:':<{largura_label}} {agendamento['Nome']} {agendamento['Sobrenome']}")
-    print(f"  {'CPF:':<{largura_label}} {agendamento['CPF']}")
-    print(f"  {'Nascimento:':<{largura_label}} {agendamento['Data de Nascimento']}")
-    print(f"  {'Status:':<{largura_label}} {agendamento['Status']}")
-    print(f"  {'Contato:':<{largura_label}} {telefone_formatado}")
-    print(f"  {'Endereço:':<{largura_label}} {agendamento['Endereço']}")
-    print(f"  {'Local:':<{largura_label}} {agendamento['Cidade']} - {agendamento['Estado']}")
-    print(f"  {'Consulta com:':<{largura_label}} {agendamento['Especialista']}")
-    print(f"  {'Horário Início:':<{largura_label}} {agendamento['Horário']}")
+    largura_label = 15
+    print(f"  {'Data:':<{largura_label}} {ag.get('DataConsulta', 'N/A')}")
+    print(f"  {'Horário Início:':<{largura_label}} {ag.get('HorarioInicio', 'N/A')}")
+    print(f"  {'Status:':<{largura_label}} {ag.get('Status', 'N/A')}")
+    print(f"  {'Paciente:':<{largura_label}} {ag.get('NomeCompleto', 'N/A')}")
+    print(f"  {'CPF:':<{largura_label}} {ag.get('CPF', 'N/A')}")
+    print(f"  {'Médico:':<{largura_label}} {ag.get('Especialista', 'N/A')}")
+    print(f"  {'Horário Final:':<{largura_label}} {ag.get('HoraFinal', 'N/A')}")
+
+# (Função formatar_telefone não precisa de mudanças)
+def formatar_telefone(ddd, telefone):
+    # Converte para string e zfill para o caso de dados antigos
+    ddd = str(ddd)
+    telefone = str(telefone).zfill(9) 
     
-    # NOVO: Imprime a Hora Final (se existir)
-    print(f"  {'Horário Final:':<{largura_label}} {agendamento.get('HoraFinal', 'N/A')}")
-    # NOVO: Imprime os timestamps
-    print(f"  {'Data de Cadastro:':<{largura_label}} {agendamento.get('DataCadastro', 'N/A')}")
-    print(f"  {'Última Modificação:':<{largura_label}} {agendamento.get('UltimaModificacao', 'N/A')}")
+    if not ddd and not telefone:
+        return "N/A"
+        
+    parte1 = telefone[1:5]
+    parte2 = telefone[5:]
+    return f"({ddd}) 9 {parte1}-{parte2}"
 
 
-# --- Cadastro (ALTERADA) ---
-def cadastrar(agendamentos):
-    print("\n--- Novo Cadastro de Paciente ---")
-    
-    # (Loops de validação 'while True' ... sem alteração)
+# --- 1. Cadastrar Paciente (ALTERADO) ---
+def cadastrar_paciente(pacientes):
+    print("\n--- 1. Novo Cadastro de Paciente ---")
+    print("Insira os dados de registro do paciente. (Isso não cria um agendamento).")
+
+    # ALTERADO: Pede Nome Completo
     while True:
-        nome = input("Digite o primeiro nome: ").title().strip()
-        if nome: break
-        print("Erro: o nome não pode ficar em branco!")
-    while True:
-        sobrenome = input("Sobrenome: ").title().strip()
-        if sobrenome: break
-        print("Erro: o sobrenome não pode ficar em branco!")
+        nome_completo = input("Nome Completo: ").title().strip()
+        if nome_completo: break
+        print("Erro: o nome completo não pode ficar em branco!")
+
+    # Loop de validação de CPF (checa duplicidade na lista de PACIENTES)
     while True:
         cpf = input("CPF (somente números, 11 dígitos): ").strip()
         if not cpf.isdigit() or len(cpf) != 11:
             print("Erro: CPF deve conter exatamente 11 números!")
             continue
-        cpf_existe = any(ag["CPF"] == cpf for ag in agendamentos)
-        if cpf_existe:
-            print("Erro: Já existe um paciente com este CPF.")
-            continue
-        break
+        
+        if buscar_paciente_por_cpf(cpf, pacientes):
+            print("Erro: Já existe um paciente cadastrado com este CPF.")
+            # Pergunta se quer parar o cadastro
+            if input("Deseja cancelar o cadastro? (S/N): ").strip().upper() == 'S':
+                return False # Retorna ao menu principal
+            else:
+                continue # Pede o CPF novamente
+        
+        break # CPF válido e único
+
+    # Loops de validação (semelhantes a antes)
     while True:
         data_nasc_str = input("Data de nascimento (DD/MM/AAAA): ").strip()
         data_nasc_valida = validar_data(data_nasc_str)
@@ -117,22 +174,12 @@ def cadastrar(agendamentos):
         if numero.isdigit() and len(numero) == 9 and numero.startswith("9"): break
         print("Erro: número inválido! Deve ter 9 dígitos e começar com 9.")
     telefone = numero
-    while True:
-        especialista = input("Qual médico: ").title().strip()
-        if especialista: break
-        print("Erro: especialista não pode ficar em branco!")
-    while True:
-        horario_str = input("Horário da consulta (HH:MM): ").strip()
-        horario_valido = validar_horario(horario_str)
-        if horario_valido: break
-        print("Erro: horário inválido! Use o formato HH:MM (ex: 14:30).")
 
-    # Pega a data e hora do cadastro
     data_cadastro_str = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
 
-    agendado = {
-        "Nome": nome,
-        "Sobrenome": sobrenome,
+    # Cria o dicionário do PACIENTE (sem dados de consulta)
+    paciente_novo = {
+        "NomeCompleto": nome_completo, # ALTERADO
         "CPF": cpf,
         "Data de Nascimento": data_nasc_valida,
         "Estado": estado,
@@ -140,115 +187,237 @@ def cadastrar(agendamentos):
         "Endereço": endereco,
         "DDD": ddd,
         "Telefone": telefone,
-        "Especialista": especialista,
-        "Horário": horario_valido, # Horário de Início
-        "HoraFinal": "N/A", # NOVO: Inicializa Hora Final
         "DataCadastro": data_cadastro_str, 
-        "UltimaModificacao": "N/A", # NOVO: Inicializa Timestamp de modificação
+        "UltimaModificacao": "N/A"
+    }
+    pacientes.append(paciente_novo)
+    # Nota: A função 'main' que chamou esta, será responsável por salvar.
+    print("\n✅ Paciente cadastrado com sucesso!\n")
+    return True # Sinaliza sucesso
+
+# --- 2. Realizar Agendamento (NOVO) ---
+def realizar_agendamento(pacientes, agendamentos):
+    print("\n--- 2. Realizar Novo Agendamento ---")
+    
+    nome_paciente = None
+    cpf_paciente = None
+    paciente_cadastrado = False
+
+    while True:
+        resposta = input("O agendamento é para um paciente já cadastrado? (S/N): ").strip().upper()
+        if resposta in ('S', 'N'):
+            break
+        print("Opção inválida.")
+
+    if resposta == 'S':
+        # Loop para encontrar o paciente cadastrado
+        while True:
+            cpf_busca = input("Digite o CPF do paciente (11 dígitos): ").strip()
+            paciente_encontrado = buscar_paciente_por_cpf(cpf_busca, pacientes)
+            
+            if paciente_encontrado:
+                print(f"Paciente encontrado: {paciente_encontrado['NomeCompleto']}")
+                nome_paciente = paciente_encontrado['NomeCompleto']
+                cpf_paciente = paciente_encontrado['CPF']
+                paciente_cadastrado = True
+                break # Sai do loop de busca
+            else:
+                print("Paciente não cadastrado com este CPF.")
+                if input("Tentar outro CPF? (S/N): ").strip().upper() == 'N':
+                    print("Cancelando. Por favor, cadastre o paciente primeiro (Opção 1) ou faça um agendamento não cadastrado.")
+                    return False # Cancela o agendamento
+    
+    elif resposta == 'N':
+        print("Agendamento para paciente não cadastrado.")
+        # Pede os dados mínimos para o agendamento
+        while True:
+            nome_paciente = input("Nome Completo do paciente: ").title().strip()
+            if nome_paciente: break
+            print("Erro: o nome completo não pode ficar em branco!")
+        while True:
+            cpf_paciente = input("CPF do paciente (11 dígitos, para controle): ").strip()
+            if cpf_paciente.isdigit() and len(cpf_paciente) == 11: break
+            print("Erro: CPF inválido!")
+
+    # Se não definimos um paciente (cancelou a busca 'S' ou é 'N' e falhou)
+    if not nome_paciente or not cpf_paciente:
+        print("Dados do paciente incompletos. Agendamento cancelado.")
+        return False
+
+    # Coleta de dados do AGENDAMENTO
+    print(f"\nAgendando para: {nome_paciente} (CPF: {cpf_paciente})")
+    
+    # NOVO: Pede a data da consulta
+    while True:
+        data_consulta_str = input("Data da Consulta (DD/MM/AAAA): ").strip()
+        data_consulta_valida = validar_data(data_consulta_str)
+        if data_consulta_valida:
+            # Validação bônus: não agendar no passado
+            if datetime.strptime(data_consulta_valida, '%d/%m/%Y').date() < datetime.now().date():
+                print("Erro: Não é possível agendar em uma data passada.")
+            else:
+                break # Data válida e no futuro
+        print("Erro: data inválida! Use o formato DD/MM/AAAA.")
+        
+    while True:
+        especialista = input("Qual médico: ").title().strip()
+        if especialista: break
+        print("Erro: especialista não pode ficar em branco!")
+    while True:
+        horario_str = input("Horário de Início (HH:MM): ").strip()
+        horario_valido = validar_horario(horario_str)
+        if horario_valido: break
+        print("Erro: horário inválido! Use o formato HH:MM (ex: 14:30).")
+
+    data_agendamento_str = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
+
+    # Cria o dicionário do AGENDAMENTO
+    novo_agendamento = {
+        "NomeCompleto": nome_paciente,
+        "CPF": cpf_paciente,
+        "PacienteCadastrado": paciente_cadastrado, # Guarda se o CPF é de um registro
+        "DataConsulta": data_consulta_valida,
+        "Especialista": especialista,
+        "HorarioInicio": horario_valido, # Nome do campo mudado de 'Horário'
+        "HoraFinal": "N/A",
+        "DataAgendamento": data_agendamento_str, # Quando foi marcado
         "Status": "Ativo"
     }
-    agendamentos.append(agendado)
-    salvar_agendamentos(agendamentos)
-    print("\n✅ Paciente cadastrado com sucesso!\n")
+    agendamentos.append(novo_agendamento)
+    print("\n✅ Agendamento realizado com sucesso!\n")
+    return True # Sinaliza sucesso
 
-# --- Listagem ---
-def listar(agendamentos):
-    if not agendamentos:
+# --- 3. Listar Pacientes (ALTERADO) ---
+def listar_pacientes(pacientes):
+    print("\n--- 3. Pacientes Cadastrados ---")
+    if not pacientes:
         print("\nNenhum paciente cadastrado ainda.\n")
         return
 
-    print("\n <<< PACIENTES CADASTRADOS (TODOS) >>>")
     separador = "-" * 40 
     print(separador)
 
-    for i, agendamento in enumerate(agendamentos, start=1):
-        # Chama a função helper de impressão
-        imprimir_paciente_detalhado(agendamento, indice=i)
+    for i, paciente in enumerate(pacientes, start=1):
+        # Chama a função helper de impressão de PACIENTE
+        imprimir_paciente_registro(paciente, indice=i)
         print(separador)
-    
     print()
 
-# --- Excluir paciente pelo CPF ---
-# (Sem alterações)
-def excluir(agendamentos):
-    cpf = input("Digite o CPF (11 dígitos) do paciente a excluir: ").strip()
-    paciente_encontrado = None
-    for agendamento in agendamentos:
-        if agendamento["CPF"] == cpf:
-            paciente_encontrado = agendamento
-            break
-    if paciente_encontrado:
-        agendamentos.remove(paciente_encontrado)
-        salvar_agendamentos(agendamentos)
-        print("✅ Paciente excluído com sucesso!")
-    else:
-        print("Paciente não encontrado.")
-
-# --- Editar paciente pelo CPF (ALTERADA) ---
-def editar(agendamentos):
-    cpf = input("Digite o CPF (11 dígitos) do paciente a editar: ").strip()
-    paciente_encontrado = None
+# --- 4. Listar Agendamentos (NOVO) ---
+def get_sort_key_agendamento(ag):
+    """Helper para ordenar agendamentos por data e hora."""
+    data_consulta = ag.get("DataConsulta", "")
+    hora_inicio = ag.get("HorarioInicio", "00:00")
     
-    for agendamento in agendamentos:
-        if agendamento["CPF"] == cpf:
-            paciente_encontrado = agendamento
-            break
-            
-    if not paciente_encontrado:
-        print("Paciente não encontrado.")
+    data_obj = datetime.min # Padrão para dados inválidos (coloca no topo)
+    try:
+        data_obj = datetime.strptime(f"{data_consulta} {hora_inicio}", '%d/%m/%Y %H:%M')
+    except (ValueError, TypeError):
+        pass # Usa datetime.min se houver erro
+        
+    return data_obj
+
+def listar_agendamentos(agendamentos):
+    print("\n--- 4. Agendamentos ---")
+    if not agendamentos:
+        print("\nNenhum agendamento encontrado.\n")
         return
 
-    print("\n--- Editando Paciente ---")
-    print("Deixe o campo em branco (apenas pressione Enter) para manter o valor atual.")
+    # Filtra apenas agendamentos 'Ativos'
+    agendamentos_ativos = [ag for ag in agendamentos if ag.get("Status") == "Ativo"]
     
-    # (Loops de validação... sem alteração)
+    if not agendamentos_ativos:
+        print("\nNenhum agendamento 'Ativo' encontrado.\n")
+        return
+
+    # NOVO: Ordena pela chave (data + hora)
+    agendamentos_ordenados = sorted(agendamentos_ativos, key=get_sort_key_agendamento)
+    
+    print("(Mostrando agendamentos 'Ativos' ordenados por data e hora)")
+    separador = "-" * 40 
+    print(separador)
+    
+    for i, ag in enumerate(agendamentos_ordenados, start=1):
+        # Chama a função helper de impressão de AGENDAMENTO
+        imprimir_agendamento_detalhado(ag, indice=i)
+        print(separador)
+    print()
+
+# --- 5. Editar Paciente (ALTERADO) ---
+def editar_paciente(pacientes):
+    print("\n--- 5. Editar Paciente ---")
+    cpf = input("Digite o CPF (11 dígitos) do paciente a editar: ").strip()
+    
+    paciente_encontrado = buscar_paciente_por_cpf(cpf, pacientes)
+            
+    if not paciente_encontrado:
+        print("Paciente não cadastrado.")
+        return False
+
+    print(f"Editando paciente: {paciente_encontrado['NomeCompleto']}")
+    print("Deixe o campo em branco (pressione Enter) para manter o valor atual.")
+    
+    # Loop para Nome Completo
     while True:
-        novo_nome = input(f"Nome ({paciente_encontrado['Nome']}): ").title().strip()
-        if not novo_nome: break
-        paciente_encontrado['Nome'] = novo_nome
+        novo_nome = input(f"Nome Completo ({paciente_encontrado['NomeCompleto']}): ").title().strip()
+        if not novo_nome: 
+            break # Mantém o antigo
+        paciente_encontrado['NomeCompleto'] = novo_nome
         break
-    while True:
-        novo_sobrenome = input(f"Sobrenome ({paciente_encontrado['Sobrenome']}): ").title().strip()
-        if not novo_sobrenome: break
-        paciente_encontrado['Sobrenome'] = novo_sobrenome
-        break
+
+    # Loop para Endereço
     while True:
         novo_endereco = input(f"Endereço ({paciente_encontrado['Endereço']}): ").title().strip()
-        if not novo_endereco: break
+        if not novo_endereco: 
+            break # Mantém o antigo
         paciente_encontrado['Endereço'] = novo_endereco
         break
-    while True:
-        novo_horario_str = input(f"Horário ({paciente_encontrado['Horário']}): ").strip()
-        if not novo_horario_str: break
-        novo_horario_valido = validar_horario(novo_horario_str)
-        if novo_horario_valido:
-            paciente_encontrado['Horário'] = novo_horario_valido
-            break
-        else:
-            print("Erro: horário inválido (formato HH:MM). Tente novamente.")
 
-    # NOVO: Atualiza o timestamp de modificação
+    # NOTA: Esta função está incompleta como conversamos. 
+    # Ela só edita Nome e Endereço por enquanto.
+
+    # Atualiza o timestamp de modificação
     paciente_encontrado["UltimaModificacao"] = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-
-    salvar_agendamentos(agendamentos)
     print("✅ Paciente atualizado com sucesso!")
+    return True # Sinaliza sucesso
 
-# --- Alterar status pelo CPF (TOTALMENTE ALTERADA) ---
-def alterar_status(agendamentos):
-    cpf = input("Digite o CPF (11 dígitos) do paciente: ").strip()
+# --- 6. Alterar Status do Agendamento (ALTERADO) ---
+def alterar_status_agendamento(agendamentos):
+    print("\n--- 6. Alterar Status do Agendamento ---")
+    cpf = input("Digite o CPF do paciente para buscar agendamentos: ").strip()
     
-    paciente_encontrado = None
-    for agendamento in agendamentos:
-        if agendamento["CPF"] == cpf:
-            paciente_encontrado = agendamento
-            break
-            
-    if not paciente_encontrado:
-        print("Paciente não encontrado.")
-        return
+    # Encontra TODOS os agendamentos para este CPF
+    agendamentos_do_paciente = [
+        ag for ag in agendamentos if ag.get("CPF") == cpf
+    ]
+    
+    if not agendamentos_do_paciente:
+        print("Nenhum agendamento encontrado para este CPF.")
+        return False
 
-    print(f"\nAlterando status para: {paciente_encontrado['Nome']} {paciente_encontrado['Sobrenome']}")
-    print(f"Status Atual: {paciente_encontrado['Status']}")
+    # Se houver mais de um, o usuário deve escolher
+    if len(agendamentos_do_paciente) == 1:
+        agendamento_alvo = agendamentos_do_paciente[0]
+        print(f"Agendamento encontrado para {agendamento_alvo['NomeCompleto']} em {agendamento_alvo['DataConsulta']}.")
+    else:
+        print("Múltiplos agendamentos encontrados para este CPF:")
+        for i, ag in enumerate(agendamentos_do_paciente):
+            print(f"  {i+1}) Data: {ag['DataConsulta']} | Hora: {ag['HorarioInicio']} | Status: {ag['Status']} | Médico: {ag['Especialista']}")
+        
+        while True:
+            try:
+                escolha = int(input("Qual agendamento você quer alterar (digite o número)? "))
+                if 1 <= escolha <= len(agendamentos_do_paciente):
+                    agendamento_alvo = agendamentos_do_paciente[escolha - 1]
+                    break
+                else:
+                    print("Escolha inválida.")
+            except ValueError:
+                print("Por favor, digite um número.")
+
+    # Agora temos o 'agendamento_alvo'
+    print(f"\nAlterando agendamento de {agendamento_alvo['DataConsulta']} às {agendamento_alvo['HorarioInicio']}")
+    print(f"Status Atual: {agendamento_alvo['Status']}")
     print("-------------------------")
     print("1 - Cancelado")
     print("2 - Atendimento Realizado")
@@ -258,109 +427,148 @@ def alterar_status(agendamentos):
     novo_status = None
     if opcao == "1":
         novo_status = "Cancelado"
-        # Limpa a hora final se for cancelado (opcional, mas limpo)
-        paciente_encontrado["HoraFinal"] = "N/A"
+        agendamento_alvo["HoraFinal"] = "N/A"
     elif opcao == "2":
         novo_status = "Atendimento Realizado"
-        
-        # NOVO: Pede a hora final da consulta
+        # Pede a hora final
         while True:
             hora_final_str = input("Digite a HORA FINAL da consulta (HH:MM): ").strip()
             if not hora_final_str:
-                print("Erro: A hora final é obrigatória para marcar como 'Realizado'.")
-                continue # Força o usuário a digitar
-            
+                print("Erro: A hora final é obrigatória.")
+                continue
             hora_final_valida = validar_horario(hora_final_str)
-            
             if hora_final_valida:
-                # Validação extra: hora final deve ser depois da inicial
-                if hora_final_valida <= paciente_encontrado['Horário']:
-                    print(f"Erro: A hora final ({hora_final_valida}) deve ser DEPOIS da hora inicial ({paciente_encontrado['Horário']}).")
+                if hora_final_valida <= agendamento_alvo['HorarioInicio']:
+                    print(f"Erro: A hora final ({hora_final_valida}) deve ser DEPOIS da hora inicial ({agendamento_alvo['HorarioInicio']}).")
                 else:
-                    paciente_encontrado["HoraFinal"] = hora_final_valida
-                    break # Hora final é válida
+                    agendamento_alvo["HoraFinal"] = hora_final_valida
+                    break
             else:
-                print("Erro: horário inválido (formato HH:MM). Tente novamente.")
+                print("Erro: horário inválido (formato HH:MM).")
                 
     elif opcao == "3":
         novo_status = "Ativo"
-        # Limpa a hora final se voltar para "Ativo"
-        paciente_encontrado["HoraFinal"] = "N/A"
+        agendamento_alvo["HoraFinal"] = "N/A"
     elif not opcao:
         print("Alteração de status cancelada.")
-        return
+        return False
     else:
         print("Opção inválida.")
-        return
+        return False
 
-    # Atualiza o status e o timestamp de modificação
-    paciente_encontrado["Status"] = novo_status
-    paciente_encontrado["UltimaModificacao"] = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-    
-    salvar_agendamentos(agendamentos)
-    print("✅ Status atualizado com sucesso!")
+    agendamento_alvo["Status"] = novo_status
+    # (Não atualizamos 'UltimaModificacao' do paciente, pois isso é um agendamento)
+    print("✅ Status do agendamento atualizado com sucesso!")
+    return True # Sinaliza sucesso
 
-# --- Buscar Consultas Realizadas ---
-# (Sem alterações)
-def mostrar_consultas_realizadas(agendamentos):
-    print("\n--- Buscar Consulta Realizada por CPF ---")
+# --- 7. Buscar Consulta Realizada (ALTERADO) ---
+def buscar_consultas_realizadas(agendamentos):
+    print("\n--- 7. Buscar Consultas Realizadas por CPF ---")
     cpf = input("Digite o CPF (11 dígitos) do paciente: ").strip()
     
     if not cpf.isdigit() or len(cpf) != 11:
         print("Erro: Formato de CPF inválido.")
         return
 
-    paciente_encontrado = None
-    for agendamento in agendamentos:
-        if agendamento["CPF"] == cpf:
-            paciente_encontrado = agendamento
-            break
+    # Filtra agendamentos realizados para o CPF
+    consultas_realizadas = [
+        ag for ag in agendamentos 
+        if ag.get("CPF") == cpf and ag.get("Status") == "Atendimento Realizado"
+    ]
+    
+    if not consultas_realizadas:
+        print("Nenhum 'Atendimento Realizado' encontrado para este CPF.")
+        return
 
-    if paciente_encontrado:
-        if paciente_encontrado["Status"] == "Atendimento Realizado":
-            print("\n✅ Paciente encontrado com status 'Atendimento Realizado':\n")
-            separador = "-" * 40
-            print(separador)
-            imprimir_paciente_detalhado(paciente_encontrado) 
-            print(separador)
-        else:
-            print(f"Paciente encontrado, mas o status é '{paciente_encontrado['Status']}', não 'Atendimento Realizado'.")
-    else:
-        print("Nenhum paciente encontrado com este CPF.")
+    print(f"Exibindo {len(consultas_realizadas)} consulta(s) realizada(s) para o CPF {cpf}:")
+    separador = "-" * 40
+    print(separador)
+    
+    for ag in consultas_realizadas:
+        imprimir_agendamento_detalhado(ag)
+        print(separador)
 
-# --- Programa principal ---
-# (Sem alterações no menu)
+# --- 8. Excluir Paciente (ALTERADO) ---
+def excluir_paciente(pacientes, agendamentos):
+    print("\n--- 8. Excluir Paciente (Registro) ---")
+    cpf = input("Digite o CPF (11 dígitos) do paciente a excluir: ").strip()
+    
+    paciente_encontrado = buscar_paciente_por_cpf(cpf, pacientes)
+            
+    if not paciente_encontrado:
+        print("Paciente não cadastrado.")
+        return False
+
+    print(f"!! ATENÇÃO !!")
+    print(f"Você está prestes a excluir o registro do paciente: {paciente_encontrado['NomeCompleto']}")
+    print("Isso NÃO excluirá os agendamentos dele (eles permanecerão no histórico).")
+    
+    if input("Confirmar exclusão? (S/N): ").strip().upper() != 'S':
+        print("Exclusão cancelada.")
+        return False
+
+    pacientes.remove(paciente_encontrado)
+    print("✅ Paciente (registro) excluído com sucesso!")
+    return True # Sinaliza sucesso
+
+# --- Programa principal (ALTERADO) ---
 def main():
-    agendamentos = carregar_agendamentos()
+    # Carrega ambas as listas no início
+    dados = carregar_dados()
+    pacientes = dados["pacientes"]
+    agendamentos = dados["agendamentos"]
+    
+    dados_modificados = False # Flag para saber se precisa salvar
 
     while True:
         print("\n===== MENU CLÍNICA =====")
-        print("1 - Cadastrar paciente")
-        print("2 - Listar pacientes (Todos)")
-        print("3 - Excluir paciente")
-        print("4 - Editar paciente")
-        print("5 - Alterar status da consulta")
-        print("6 - Buscar Consulta Realizada (por CPF)")
-        print("7 - Sair")
+        print("1 - Cadastrar Paciente")
+        print("2 - Realizar Agendamento")
+        print("3 - Listar Pacientes (Registros)")
+        print("4 - Listar Agendamentos (Ativos)")
+        print("5 - Editar Paciente (Registro)")
+        print("6 - Alterar Status do Agendamento")
+        print("7 - Buscar Consultas Realizadas (Histórico)")
+        print("8 - Excluir Paciente (Registro)")
+        print("9 - Sair")
         opcao = input("Escolha uma opção: ")
 
+        # Reseta o flag no início de cada loop
+        dados_modificados = False
+
         if opcao == "1":
-            cadastrar(agendamentos)
+            # Passa a lista de pacientes; se retornar True, marca para salvar
+            dados_modificados = cadastrar_paciente(pacientes)
         elif opcao == "2":
-            listar(agendamentos)
+            # Passa ambas as listas; se retornar True, marca para salvar
+            dados_modificados = realizar_agendamento(pacientes, agendamentos)
         elif opcao == "3":
-            excluir(agendamentos)
+            listar_pacientes(pacientes)
         elif opcao == "4":
-            editar(agendamentos)
+            listar_agendamentos(agendamentos)
         elif opcao == "5":
-            alterar_status(agendamentos)
+            dados_modificados = editar_paciente(pacientes)
         elif opcao == "6":
-            mostrar_consultas_realizadas(agendamentos)
+            dados_modificados = alterar_status_agendamento(agendamentos)
         elif opcao == "7":
+            buscar_consultas_realizadas(agendamentos)
+        elif opcao == "8":
+            dados_modificados = excluir_paciente(pacientes, agendamentos)
+        elif opcao == "9":
+            # Antes de sair, faz um último save se necessário
+            if dados_modificados:
+                salvar_dados(pacientes, agendamentos)
+                print("(Dados pendentes salvos.)")
             print("Saindo... Até logo!")
             break
         else:
             print("Opção inválida, tente novamente.\n")
+        
+        # NOVO: Salva os dados APENAS se alguma função (que retorna True) modificou os dados
+        if dados_modificados:
+            salvar_dados(pacientes, agendamentos)
+            print("(Dados salvos no disco.)")
 
+# Verifica se o script está sendo executado diretamente
 if __name__ == "__main__":
     main()
