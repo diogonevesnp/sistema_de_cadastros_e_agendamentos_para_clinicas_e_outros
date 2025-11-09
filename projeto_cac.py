@@ -9,6 +9,15 @@ ARQUIVO_DADOS = Path("clinica_dados.json")
 NOME_CLINICA = "Clinica Mwltynho"
 ENDERECO_CLINICA = "Avenida Tharzam, 371 Escoob City - PM"
 
+# NOVO: Lista de Profissionais Pré-Definidos
+PROFISSIONAIS = [
+    {"nome": "Dr. Mwltynho", "especializacao": "Psicólogo"},
+    {"nome": "Dra. Ana Silva", "especializacao": "Dentista"},
+    {"nome": "Dr. Bruno Costa", "especializacao": "Cardiologista"},
+    {"nome": "Dra. Carla Mendes", "especializacao": "Dermatologista"},
+]
+
+
 # --- Funções utilitárias ---
 
 # ALTERADO: Carrega o novo formato de dados (dicionário)
@@ -99,7 +108,7 @@ def imprimir_paciente_registro(paciente, indice=None):
     print(f" {'Endereço:':<{largura_label}} {ENDERECO_CLINICA}")
 
 
-# NOVO: Função helper para imprimir dados de um AGENDAMENTO
+# NOVO: Função helper para imprimir dados de um AGENDAMENTO (ALTERADA)
 def imprimir_agendamento_detalhado(ag, indice=None):
     """Imprime um bloco formatado com os dados de um agendamento."""
     if indice:
@@ -111,7 +120,9 @@ def imprimir_agendamento_detalhado(ag, indice=None):
     print(f" {'Status:':<{largura_label}} {ag.get('Status', 'N/A')}")
     print(f" {'Paciente:':<{largura_label}} {ag.get('NomeCompleto', 'N/A')}")
     print(f" {'CPF:':<{largura_label}} {ag.get('CPF', 'N/A')}")
-    print(f" {'Médico:':<{largura_label}} {ag.get('Especialista', 'N/A')}")
+    # ALTERAÇÃO AQUI: Mostra Especializacao e Medico
+    print(f" {'Especialidade:':<{largura_label}} {ag.get('Especializacao', 'N/A')}")
+    print(f" {'Médico:':<{largura_label}} {ag.get('Medico', 'N/A')}")
     print(f" {'Horário Final:':<{largura_label}} {ag.get('HoraFinal', 'N/A')}")
 
     # ALTERAÇÃO AQUI: Adiciona info da clínica na listagem
@@ -214,7 +225,7 @@ def cadastrar_paciente(pacientes):
     
     return True # Sinaliza sucesso
 
-# --- 2. Realizar Agendamento (NOVO) ---
+# --- 2. Realizar Agendamento (NOVO E ALTERADO) ---
 def realizar_agendamento(pacientes, agendamentos):
     print("\n2️⃣  Realizar Novo Agendamento")
     
@@ -278,10 +289,24 @@ def realizar_agendamento(pacientes, agendamentos):
                 break # Data válida e no futuro
         print("❌ Erro: data inválida! Use o formato DD/MM/AAAA.")
         
+    # ALTERAÇÃO AQUI: Menu de seleção de profissional
+    print("\nEscolha o profissional:")
+    for i, prof in enumerate(PROFISSIONAIS, start=1):
+        print(f"  {i}) {prof['nome']} - {prof['especializacao']}")
+    
+    escolha_prof = None
     while True:
-        especialista = input("Qual médico: ").title().strip()
-        if especialista: break
-        print("❌ Erro: especialista não pode ficar em branco!")
+        try:
+            escolha_num = int(input("Digite o número do profissional: "))
+            if 1 <= escolha_num <= len(PROFISSIONAIS):
+                escolha_prof = PROFISSIONAIS[escolha_num - 1]
+                break
+            else:
+                print(f"❌ Erro: Escolha um número entre 1 e {len(PROFISSIONAIS)}.")
+        except ValueError:
+            print("❌ Erro: Por favor, digite um número.")
+    
+    # Pede o horário
     while True:
         horario_str = input("Horário de Início (HH:MM): ").strip()
         horario_valido = validar_horario(horario_str)
@@ -296,7 +321,9 @@ def realizar_agendamento(pacientes, agendamentos):
         "CPF": cpf_paciente,
         "PacienteCadastrado": paciente_cadastrado, # Guarda se o CPF é de um registro
         "DataConsulta": data_consulta_valida,
-        "Especialista": especialista,
+        # ALTERAÇÃO AQUI: Salva os novos campos
+        "Medico": escolha_prof["nome"],
+        "Especializacao": escolha_prof["especializacao"],
         "HorarioInicio": horario_valido, # Nome do campo mudado de 'Horário'
         "HoraFinal": "N/A",
         "DataAgendamento": data_agendamento_str, # Quando foi marcado
@@ -499,7 +526,8 @@ def alterar_status_agendamento(agendamentos):
     else:
         print("Múltiplos agendamentos encontrados para este CPF:")
         for i, ag in enumerate(agendamentos_do_paciente):
-            print(f"  {i+1}) Data: {ag['DataConsulta']} | Hora: {ag['HorarioInicio']} | Status: {ag['Status']} | Médico: {ag['Especialista']}")
+            # ALTERAÇÃO AQUI: Mostra os campos corretos
+            print(f"  {i+1}) Data: {ag['DataConsulta']} | Hora: {ag['HorarioInicio']} | Status: {ag['Status']} | Médico: {ag.get('Medico', 'N/A')} ({ag.get('Especializacao', 'N/A')})")
         
         while True:
             try:

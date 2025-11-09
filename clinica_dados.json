@@ -10,7 +10,7 @@
             "DDD": "44",
             "Telefone": "998376302",
             "DataCadastro": "08/11/2025 às 13:26:46",
-            "UltimaModificacao": "08/11/2025 às 13:54:07"
+            "UltimaModificacao": "09/11/2025 às 11:21:41"
         }
     ],
     "agendamentos": [
@@ -45,6 +45,18 @@
             "HorarioInicio": "15:45",
             "HoraFinal": "N/A",
             "DataAgendamento": "09/11/2025 às 02:24:52",
+            "Status": "Ativo"
+        },
+        {
+            "NomeCompleto": "Milito Gonçalves Da Cruz",
+            "CPF": "74185296300",
+            "PacienteCadastrado": false,
+            "DataConsulta": "23/11/2025",
+            "Medico": "Dr. Bruno Costa",
+            "Especializacao": "Cardiologista",
+            "HorarioInicio": "16:56",
+            "HoraFinal": "N/A",
+            "DataAgendamento": "09/11/2025 às 11:19:55",
             "Status": "Ativo"
         }
     ]
