@@ -396,8 +396,8 @@ def listar_agendamentos(agendamentos):
         print(separador)
     print()
 
-# --- 5. Editar Paciente (ALTERADO E CORRIGIDO) ---
-def editar_paciente(pacientes, agendamentos): # <--- ALTERADO: Recebe agendamentos
+# --- 5. Editar Paciente (LÓGICA DO TIMESTAMP ALTERADA) ---
+def editar_paciente(pacientes, agendamentos):
     print("\n5️⃣  Editar Paciente")
     cpf = input("Digite o CPF (11 dígitos) do paciente a editar: ").strip()
     
@@ -410,9 +410,11 @@ def editar_paciente(pacientes, agendamentos): # <--- ALTERADO: Recebe agendament
     print(f"Editando paciente: {paciente_encontrado['NomeCompleto']}")
     print("Deixe o campo em branco (pressione Enter) para manter o valor atual.")
     
-    # NOVO: Flags para saber se o nome mudou
-    nome_alterado = False 
-    nome_antigo = paciente_encontrado['NomeCompleto']
+    # *** ALTERAÇÃO AQUI ***
+    # Flag para rastrear se o usuário realmente mudou algum dado
+    houve_alteracao = False 
+    # Guarda o nome antigo APENAS para a lógica de sincronização
+    nome_antigo_para_sinc = paciente_encontrado['NomeCompleto']
 
     # 1. Loop para Nome Completo
     while True:
@@ -420,72 +422,91 @@ def editar_paciente(pacientes, agendamentos): # <--- ALTERADO: Recebe agendament
         if not novo_nome: 
             break # Mantém o antigo
         
-        paciente_encontrado['NomeCompleto'] = novo_nome
-        if novo_nome != nome_antigo: # Marca que o nome foi alterado
-            nome_alterado = True
+        # Só marca a alteração se o nome for NOVO
+        if novo_nome != paciente_encontrado['NomeCompleto']:
+            paciente_encontrado['NomeCompleto'] = novo_nome
+            houve_alteracao = True
         break
 
-    # 2. NOVO: Loop para Data de Nascimento
+    # 2. Loop para Data de Nascimento
     while True:
         nova_data_str = input(f"Data de nascimento ({paciente_encontrado['Data de Nascimento']}): ").strip()
         if not nova_data_str:
             break # Mantém o antigo
         data_nasc_valida = validar_data(nova_data_str)
         if data_nasc_valida:
-            paciente_encontrado['Data de Nascimento'] = data_nasc_valida
+            # Só marca a alteração se a data for NOVA
+            if data_nasc_valida != paciente_encontrado['Data de Nascimento']:
+                paciente_encontrado['Data de Nascimento'] = data_nasc_valida
+                houve_alteracao = True
             break
         print("❌ Erro: data inválida! Use o formato DD/MM/AAAA.")
 
-    # 3. NOVO: Loop para Estado
+    # 3. Loop para Estado
     while True:
         novo_estado = input(f"Estado ({paciente_encontrado['Estado']}): ").upper().strip()
         if not novo_estado:
             break # Mantém o antigo
         if len(novo_estado) == 2 and novo_estado.isalpha():
-            paciente_encontrado['Estado'] = novo_estado
+            # Só marca a alteração se o estado for NOVO
+            if novo_estado != paciente_encontrado['Estado']:
+                paciente_encontrado['Estado'] = novo_estado
+                houve_alteracao = True
             break
         print("❌ Erro: estado inválido! Digite apenas a sigla de 2 letras.")
 
-    # 4. NOVO: Loop para Cidade
+    # 4. Loop para Cidade
     while True:
         nova_cidade = input(f"Cidade ({paciente_encontrado['Cidade']}): ").title().strip()
         if not nova_cidade:
             break # Mantém o antigo
-        if nova_cidade: # (Validação simples de não estar vazio)
-            paciente_encontrado['Cidade'] = nova_cidade
+        if nova_cidade:
+            # Só marca a alteração se a cidade for NOVA
+            if nova_cidade != paciente_encontrado['Cidade']:
+                paciente_encontrado['Cidade'] = nova_cidade
+                houve_alteracao = True
             break
         print("❌ Erro: cidade não pode ficar em branco!")
 
-    # 5. Loop para Endereço (já existia)
+    # 5. Loop para Endereço
     while True:
         novo_endereco = input(f"Endereço ({paciente_encontrado['Endereço']}): ").title().strip()
         if not novo_endereco: 
             break # Mantém o antigo
-        paciente_encontrado['Endereço'] = novo_endereco
+        # Só marca a alteração se o endereço for NOVO
+        if novo_endereco != paciente_encontrado['Endereço']:
+            paciente_encontrado['Endereço'] = novo_endereco
+            houve_alteracao = True
         break
 
-    # 6. NOVO: Loop para DDD
+    # 6. Loop para DDD
     while True:
         novo_ddd = input(f"DDD ({paciente_encontrado['DDD']}): ").strip()
         if not novo_ddd:
             break # Mantém o antigo
         if novo_ddd.isdigit() and len(novo_ddd) == 2:
-            paciente_encontrado['DDD'] = novo_ddd
+            # Só marca a alteração se o DDD for NOVO
+            if novo_ddd != paciente_encontrado['DDD']:
+                paciente_encontrado['DDD'] = novo_ddd
+                houve_alteracao = True
             break
         print("❌ Erro: DDD inválido! Digite 2 números.")
 
-    # 7. NOVO: Loop para Telefone
+    # 7. Loop para Telefone
     while True:
         novo_numero = input(f"Número de celular ({paciente_encontrado['Telefone']}): ").strip()
         if not novo_numero:
             break # Mantém o antigo
         if novo_numero.isdigit() and len(novo_numero) == 9 and novo_numero.startswith("9"):
-            paciente_encontrado['Telefone'] = novo_numero
+            # Só marca a alteração se o número for NOVO
+            if novo_numero != paciente_encontrado['Telefone']:
+                paciente_encontrado['Telefone'] = novo_numero
+                houve_alteracao = True
             break
         print("❌ Erro: número inválido! Deve ter 9 dígitos e começar com 9.")
 
-    # NOVO: Sincroniza agendamentos ativos se o nome mudou
-    if nome_alterado:
+    # Sincroniza agendamentos ativos SE o nome mudou
+    if paciente_encontrado['NomeCompleto'] != nome_antigo_para_sinc:
         print("\nDetectada alteração de nome. Sincronizando agendamentos 'Ativos'...")
         agendamentos_atualizados = 0
         for ag in agendamentos:
@@ -499,11 +520,15 @@ def editar_paciente(pacientes, agendamentos): # <--- ALTERADO: Recebe agendament
         else:
             print("📑 Nenhum agendamento 'Ativo' precisou ser atualizado.")
 
-
-    # Atualiza o timestamp de modificação
-    paciente_encontrado["UltimaModificacao"] = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-    print("\n✅ Paciente atualizado com sucesso!")
-    return True # Sinaliza sucesso
+    # *** ALTERAÇÃO AQUI ***
+    # Só atualiza o timestamp e retorna True (para salvar) se algo MUDOU
+    if houve_alteracao:
+        paciente_encontrado["UltimaModificacao"] = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
+        print("\n✅ Paciente atualizado com sucesso!")
+        return True # Sinaliza sucesso (e necessidade de salvar)
+    else:
+        print("\nℹ️ Nenhuma alteração foi feita.")
+        return False # Sinaliza que NADA mudou (e não precisa salvar)
 
 # --- 6. Alterar Status do Agendamento (ALTERADO) ---
 def alterar_status_agendamento(agendamentos):
@@ -673,6 +698,7 @@ def main():
             listar_agendamentos(agendamentos)
         elif opcao == "5":
             # ALTERADO: Passa 'agendamentos' para sincronizar nomes
+            # E agora, 'dados_modificados' SÓ será True se algo mudou
             dados_modificados = editar_paciente(pacientes, agendamentos)
         elif opcao == "6":
             dados_modificados = alterar_status_agendamento(agendamentos)
