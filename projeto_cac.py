@@ -356,7 +356,8 @@ def listar_pacientes(pacientes):
         print(separador)
     print()
 
-# --- 4. Listar Agendamentos (NOVO) ---
+# --- 4. Listar Agendamentos (FUNÇÕES ALTERADAS/ADICIONADAS) ---
+
 def get_sort_key_agendamento(ag):
     """Helper para ordenar agendamentos por data e hora."""
     data_consulta = ag.get("DataConsulta", "")
@@ -370,31 +371,86 @@ def get_sort_key_agendamento(ag):
         
     return data_obj
 
+# *** NOVA FUNÇÃO HELPER 1 ***
+def listar_agendamentos_por_status(agendamentos, status_desejado):
+    """Filtra, ordena e imprime agendamentos por um status específico."""
+    print(f"\n--- Listando Agendamentos '{status_desejado}' ---")
+    
+    # Filtra
+    agendamentos_filtrados = [ag for ag in agendamentos if ag.get("Status") == status_desejado]
+    
+    if not agendamentos_filtrados:
+        print(f"\n🔻Nenhum agendamento '{status_desejado}' encontrado.\n")
+        return
+
+    # Ordena (usando a chave existente)
+    agendamentos_ordenados = sorted(agendamentos_filtrados, key=get_sort_key_agendamento)
+    
+    print(f"📆 Mostrando {len(agendamentos_ordenados)} agendamento(s) '{status_desejado}' ordenados por data e hora")
+    separador = "-" * 60 
+    print(separador)
+    
+    for i, ag in enumerate(agendamentos_ordenados, start=1):
+        imprimir_agendamento_detalhado(ag, indice=i)
+        print(separador)
+    print()
+
+# *** NOVA FUNÇÃO HELPER 2 ***
+def buscar_agendamentos_por_cpf(agendamentos):
+    """Busca e lista todos os agendamentos (qualquer status) para um CPF."""
+    print("\n--- Buscar Agendamentos por CPF ---")
+    cpf = input("Digite o CPF (11 dígitos) do paciente: ").strip()
+
+    if not cpf.isdigit() or len(cpf) != 11:
+        print("Erro: Formato de CPF inválido.")
+        return
+
+    # Filtra por CPF (todos os status)
+    agendamentos_do_paciente = [ag for ag in agendamentos if ag.get("CPF") == cpf]
+
+    if not agendamentos_do_paciente:
+        print(f"\n🔻Nenhum agendamento (em qualquer status) encontrado para o CPF {cpf}.\n")
+        return
+
+    # Ordena por data
+    agendamentos_ordenados = sorted(agendamentos_do_paciente, key=get_sort_key_agendamento)
+
+    print(f"\nExibindo {len(agendamentos_ordenados)} agendamento(s) para o CPF {cpf} (ordenados por data):")
+    separador = "-" * 60
+    print(separador)
+
+    for ag in agendamentos_ordenados:
+        imprimir_agendamento_detalhado(ag) # Imprime sem índice
+        print(separador)
+    print()
+
+# *** FUNÇÃO PRINCIPAL DA OPÇÃO 4 (AGORA É UM SUBMENU) ***
 def listar_agendamentos(agendamentos):
     print("\n4️⃣  Agendamentos")
     if not agendamentos:
         print("\n❌ Nenhum agendamento encontrado.\n")
         return
 
-    # Filtra apenas agendamentos 'Ativos'
-    agendamentos_ativos = [ag for ag in agendamentos if ag.get("Status") == "Ativo"]
-    
-    if not agendamentos_ativos:
-        print("\n🔻Nenhum agendamento 'Ativo' encontrado.\n")
-        return
+    while True:
+        print("\n--- Submenu Listar Agendamentos ---")
+        print("1 - Listar Agendamentos Ativos")
+        print("2 - Listar Agendamentos Cancelados")
+        print("3 - Buscar Agendamentos por CPF")
+        print("4 - Voltar ao Menu Principal")
+        opcao_submenu = input("∷ Escolha uma opção: ").strip()
 
-    # NOVO: Ordena pela chave (data + hora)
-    agendamentos_ordenados = sorted(agendamentos_ativos, key=get_sort_key_agendamento)
-    
-    print("📆 Mostrando agendamentos 'Ativos' ordenados por data e hora")
-    separador = "-" * 60 
-    print(separador)
-    
-    for i, ag in enumerate(agendamentos_ordenados, start=1):
-        # Chama a função helper de impressão de AGENDAMENTO
-        imprimir_agendamento_detalhado(ag, indice=i)
-        print(separador)
-    print()
+        if opcao_submenu == "1":
+            listar_agendamentos_por_status(agendamentos, "Ativo")
+        elif opcao_submenu == "2":
+            listar_agendamentos_por_status(agendamentos, "Cancelado")
+        elif opcao_submenu == "3":
+            buscar_agendamentos_por_cpf(agendamentos)
+        elif opcao_submenu == "4":
+            print("Voltando ao menu principal...")
+            break # Sai do loop do submenu
+        else:
+            print("Opção inválida, tente novamente.")
+
 
 # --- 5. Editar Paciente (LÓGICA DO TIMESTAMP ALTERADA) ---
 def editar_paciente(pacientes, agendamentos):
@@ -675,7 +731,7 @@ def main():
         print("1 - Cadastrar Paciente")
         print("2 - Realizar Agendamento")
         print("3 - Listar Pacientes (Registros)")
-        print("4 - Listar Agendamentos (Ativos)")
+        print("4 - Listar Agendamentos (Submenu)") # <-- Lembrete da mudança
         print("5 - Editar Paciente (Registro)")
         print("6 - Alterar Status do Agendamento")
         print("7 - Buscar Consultas Realizadas (Histórico)")
@@ -695,7 +751,7 @@ def main():
         elif opcao == "3":
             listar_pacientes(pacientes)
         elif opcao == "4":
-            listar_agendamentos(agendamentos)
+            listar_agendamentos(agendamentos) # Agora chama o submenu
         elif opcao == "5":
             # ALTERADO: Passa 'agendamentos' para sincronizar nomes
             # E agora, 'dados_modificados' SÓ será True se algo mudou
