@@ -1,0 +1,63 @@
+{
+    "pacientes": [
+        {
+            "NomeCompleto": "Diogo Neves Nunes Paulista",
+            "CPF": "12642434990",
+            "Data de Nascimento": "13/11/2002",
+            "Estado": "PR",
+            "Cidade": "Corumbataí Do Sul",
+            "Endereço": "Estrada Paraíso S/N - Mercadão",
+            "DDD": "44",
+            "Telefone": "998376302",
+            "DataCadastro": "08/11/2025 às 13:26:46",
+            "UltimaModificacao": "09/11/2025 às 11:21:41"
+        }
+    ],
+    "agendamentos": [
+        {
+            "NomeCompleto": "Diogo Neves Nunes Paulista",
+            "CPF": "12642434990",
+            "PacienteCadastrado": true,
+            "DataConsulta": "10/11/2025",
+            "Especialista": "Ortopedista",
+            "HorarioInicio": "14:25",
+            "HoraFinal": "N/A",
+            "DataAgendamento": "08/11/2025 às 13:28:41",
+            "Status": "Ativo"
+        },
+        {
+            "NomeCompleto": "Micaela Neves Nunes Paulista",
+            "CPF": "12345678911",
+            "PacienteCadastrado": false,
+            "DataConsulta": "15/11/2025",
+            "Especialista": "Psiquiátra",
+            "HorarioInicio": "16:20",
+            "HoraFinal": "N/A",
+            "DataAgendamento": "08/11/2025 às 13:44:23",
+            "Status": "Ativo"
+        },
+        {
+            "NomeCompleto": "Lucas Mateus Neves Nunes Paulista",
+            "CPF": "78945612300",
+            "PacienteCadastrado": false,
+            "DataConsulta": "27/11/2025",
+            "Especialista": "Psicólogo",
+            "HorarioInicio": "15:45",
+            "HoraFinal": "N/A",
+            "DataAgendamento": "09/11/2025 às 02:24:52",
+            "Status": "Ativo"
+        },
+        {
+            "NomeCompleto": "Milito Gonçalves Da Cruz",
+            "CPF": "74185296300",
+            "PacienteCadastrado": false,
+            "DataConsulta": "23/11/2025",
+            "Medico": "Dr. Bruno Costa",
+            "Especializacao": "Cardiologista",
+            "HorarioInicio": "16:56",
+            "HoraFinal": "N/A",
+            "DataAgendamento": "09/11/2025 às 11:19:55",
+            "Status": "Ativo"
+        }
+    ]
+}
