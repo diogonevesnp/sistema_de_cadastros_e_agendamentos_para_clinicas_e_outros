@@ -35,6 +35,17 @@
             "HoraFinal": "N/A",
             "DataAgendamento": "08/11/2025 às 13:44:23",
             "Status": "Ativo"
+        },
+        {
+            "NomeCompleto": "Lucas Mateus Neves Nunes Paulista",
+            "CPF": "78945612300",
+            "PacienteCadastrado": false,
+            "DataConsulta": "27/11/2025",
+            "Especialista": "Psicólogo",
+            "HorarioInicio": "15:45",
+            "HoraFinal": "N/A",
+            "DataAgendamento": "09/11/2025 às 02:24:52",
+            "Status": "Ativo"
         }
     ]
 }

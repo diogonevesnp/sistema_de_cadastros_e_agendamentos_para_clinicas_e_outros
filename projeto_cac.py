@@ -141,17 +141,17 @@ def cadastrar_paciente(pacientes):
     while True:
         nome_completo = input("Nome Completo: ").title().strip()
         if nome_completo: break
-        print("Erro: o nome completo não pode ficar em branco!")
+        print("❌ Erro: o nome completo não pode ficar em branco!")
 
     # Loop de validação de CPF (checa duplicidade na lista de PACIENTES)
     while True:
         cpf = input("CPF (somente números, 11 dígitos): ").strip()
         if not cpf.isdigit() or len(cpf) != 11:
-            print("Erro: CPF deve conter exatamente 11 números!")
+            print("❌ Erro: CPF deve conter exatamente 11 números!")
             continue
         
         if buscar_paciente_por_cpf(cpf, pacientes):
-            print("Erro: Já existe um paciente cadastrado com este CPF.")
+            print("❌ Erro: Já existe um paciente cadastrado com este CPF.")
             # Pergunta se quer parar o cadastro
             if input("Deseja cancelar o cadastro? (S/N): ").strip().upper() == 'S':
                 return False # Retorna ao menu principal
@@ -165,27 +165,27 @@ def cadastrar_paciente(pacientes):
         data_nasc_str = input("Data de nascimento (DD/MM/AAAA): ").strip()
         data_nasc_valida = validar_data(data_nasc_str)
         if data_nasc_valida: break
-        print("Erro: data inválida! Use o formato DD/MM/AAAA.")
+        print("❌ Erro: data inválida! Use o formato DD/MM/AAAA.")
     while True:
         estado = input("Estado (sigla, ex: PR): ").upper().strip()
         if len(estado) == 2 and estado.isalpha(): break
-        print("Erro: estado inválido! Digite apenas a sigla de 2 letras.")
+        print("❌ Erro: estado inválido! Digite apenas a sigla de 2 letras.")
     while True:
         cidade = input("Cidade: ").title().strip()
         if cidade: break
-        print("Erro: cidade não pode ficar em branco!")
+        print("❌ Erro: cidade não pode ficar em branco!")
     while True:
         endereco = input("Endereço: ").title().strip()
         if endereco: break
-        print("Erro: endereço não pode ficar em branco!")
+        print("❌ Erro: endereço não pode ficar em branco!")
     while True:
         ddd = input("DDD (2 dígitos): ").strip()
         if ddd.isdigit() and len(ddd) == 2: break
-        print("Erro: DDD inválido! Digite 2 números.")
+        print("❌ Erro: DDD inválido! Digite 2 números.")
     while True:
         numero = input("Número de celular (9 dígitos, ex: 9XXXXXXX): ").strip()
         if numero.isdigit() and len(numero) == 9 and numero.startswith("9"): break
-        print("Erro: número inválido! Deve ter 9 dígitos e começar com 9.")
+        print("❌ Erro: número inválido! Deve ter 9 dígitos e começar com 9.")
     telefone = numero
 
     data_cadastro_str = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
@@ -226,7 +226,7 @@ def realizar_agendamento(pacientes, agendamentos):
         resposta = input("O agendamento é para um paciente já cadastrado? (S/N): ").strip().upper()
         if resposta in ('S', 'N'):
             break
-        print("Opção inválida.")
+        print("❕Opção inválida.")
 
     if resposta == 'S':
         # Loop para encontrar o paciente cadastrado
@@ -241,9 +241,9 @@ def realizar_agendamento(pacientes, agendamentos):
                 paciente_cadastrado = True
                 break # Sai do loop de busca
             else:
-                print("Paciente não cadastrado com este CPF.")
-                if input("Tentar outro CPF? (S/N): ").strip().upper() == 'N':
-                    print("Cancelando. Por favor, cadastre o paciente primeiro (Opção 1) ou faça um agendamento não cadastrado.")
+                print("🔻Paciente não cadastrado com este CPF.")
+                if input("🪪 Tentar outro CPF? (S/N): ").strip().upper() == 'N':
+                    print("◌ Cancelando. Por favor, cadastre o paciente primeiro (Opção 1) ou faça um agendamento não cadastrado.")
                     return False # Cancela o agendamento
     
     elif resposta == 'N':
@@ -252,11 +252,11 @@ def realizar_agendamento(pacientes, agendamentos):
         while True:
             nome_paciente = input("Nome Completo do paciente: ").title().strip()
             if nome_paciente: break
-            print("Erro: o nome completo não pode ficar em branco!")
+            print("❌ Erro: o nome completo não pode ficar em branco!")
         while True:
             cpf_paciente = input("CPF do paciente (11 dígitos, para controle): ").strip()
             if cpf_paciente.isdigit() and len(cpf_paciente) == 11: break
-            print("Erro: CPF inválido!")
+            print("❌ Erro: CPF inválido!")
 
     # Se não definimos um paciente (cancelou a busca 'S' ou é 'N' e falhou)
     if not nome_paciente or not cpf_paciente:
@@ -273,20 +273,20 @@ def realizar_agendamento(pacientes, agendamentos):
         if data_consulta_valida:
             # Validação bônus: não agendar no passado
             if datetime.strptime(data_consulta_valida, '%d/%m/%Y').date() < datetime.now().date():
-                print("Erro: Não é possível agendar em uma data passada.")
+                print("❌ Erro: Não é possível agendar em uma data passada.")
             else:
                 break # Data válida e no futuro
-        print("Erro: data inválida! Use o formato DD/MM/AAAA.")
+        print("❌ Erro: data inválida! Use o formato DD/MM/AAAA.")
         
     while True:
         especialista = input("Qual médico: ").title().strip()
         if especialista: break
-        print("Erro: especialista não pode ficar em branco!")
+        print("❌ Erro: especialista não pode ficar em branco!")
     while True:
         horario_str = input("Horário de Início (HH:MM): ").strip()
         horario_valido = validar_horario(horario_str)
         if horario_valido: break
-        print("Erro: horário inválido! Use o formato HH:MM (ex: 14:30).")
+        print("❌ Erro: horário inválido! Use o formato HH:MM (ex: 14:30).")
 
     data_agendamento_str = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
 
@@ -353,7 +353,7 @@ def listar_agendamentos(agendamentos):
     agendamentos_ativos = [ag for ag in agendamentos if ag.get("Status") == "Ativo"]
     
     if not agendamentos_ativos:
-        print("\nNenhum agendamento 'Ativo' encontrado.\n")
+        print("\n🔻Nenhum agendamento 'Ativo' encontrado.\n")
         return
 
     # NOVO: Ordena pela chave (data + hora)
@@ -371,13 +371,13 @@ def listar_agendamentos(agendamentos):
 
 # --- 5. Editar Paciente (ALTERADO E CORRIGIDO) ---
 def editar_paciente(pacientes, agendamentos): # <--- ALTERADO: Recebe agendamentos
-    print("\n<<< 5. Editar Paciente >>>")
+    print("\n5️⃣  Editar Paciente")
     cpf = input("Digite o CPF (11 dígitos) do paciente a editar: ").strip()
     
     paciente_encontrado = buscar_paciente_por_cpf(cpf, pacientes)
             
     if not paciente_encontrado:
-        print("Paciente não cadastrado.")
+        print("🔻Paciente não cadastrado.")
         return False
 
     print(f"Editando paciente: {paciente_encontrado['NomeCompleto']}")
@@ -407,7 +407,7 @@ def editar_paciente(pacientes, agendamentos): # <--- ALTERADO: Recebe agendament
         if data_nasc_valida:
             paciente_encontrado['Data de Nascimento'] = data_nasc_valida
             break
-        print("Erro: data inválida! Use o formato DD/MM/AAAA.")
+        print("❌ Erro: data inválida! Use o formato DD/MM/AAAA.")
 
     # 3. NOVO: Loop para Estado
     while True:
@@ -417,7 +417,7 @@ def editar_paciente(pacientes, agendamentos): # <--- ALTERADO: Recebe agendament
         if len(novo_estado) == 2 and novo_estado.isalpha():
             paciente_encontrado['Estado'] = novo_estado
             break
-        print("Erro: estado inválido! Digite apenas a sigla de 2 letras.")
+        print("❌ Erro: estado inválido! Digite apenas a sigla de 2 letras.")
 
     # 4. NOVO: Loop para Cidade
     while True:
@@ -427,7 +427,7 @@ def editar_paciente(pacientes, agendamentos): # <--- ALTERADO: Recebe agendament
         if nova_cidade: # (Validação simples de não estar vazio)
             paciente_encontrado['Cidade'] = nova_cidade
             break
-        print("Erro: cidade não pode ficar em branco!")
+        print("❌ Erro: cidade não pode ficar em branco!")
 
     # 5. Loop para Endereço (já existia)
     while True:
@@ -445,7 +445,7 @@ def editar_paciente(pacientes, agendamentos): # <--- ALTERADO: Recebe agendament
         if novo_ddd.isdigit() and len(novo_ddd) == 2:
             paciente_encontrado['DDD'] = novo_ddd
             break
-        print("Erro: DDD inválido! Digite 2 números.")
+        print("❌ Erro: DDD inválido! Digite 2 números.")
 
     # 7. NOVO: Loop para Telefone
     while True:
@@ -455,7 +455,7 @@ def editar_paciente(pacientes, agendamentos): # <--- ALTERADO: Recebe agendament
         if novo_numero.isdigit() and len(novo_numero) == 9 and novo_numero.startswith("9"):
             paciente_encontrado['Telefone'] = novo_numero
             break
-        print("Erro: número inválido! Deve ter 9 dígitos e começar com 9.")
+        print("❌ Erro: número inválido! Deve ter 9 dígitos e começar com 9.")
 
     # NOVO: Sincroniza agendamentos ativos se o nome mudou
     if nome_alterado:
@@ -470,7 +470,7 @@ def editar_paciente(pacientes, agendamentos): # <--- ALTERADO: Recebe agendament
         if agendamentos_atualizados > 0:
             print(f"{agendamentos_atualizados} agendamento(s) 'Ativo(s)' foram atualizados com o novo nome.")
         else:
-            print("Nenhum agendamento 'Ativo' precisou ser atualizado.")
+            print("📑 Nenhum agendamento 'Ativo' precisou ser atualizado.")
 
 
     # Atualiza o timestamp de modificação
@@ -480,7 +480,7 @@ def editar_paciente(pacientes, agendamentos): # <--- ALTERADO: Recebe agendament
 
 # --- 6. Alterar Status do Agendamento (ALTERADO) ---
 def alterar_status_agendamento(agendamentos):
-    print("\n<<< 6. Alterar Status do Agendamento >>>")
+    print("\n6️⃣  Alterar Status do Agendamento")
     cpf = input("Digite o CPF do paciente para buscar agendamentos: ").strip()
     
     # Encontra TODOS os agendamentos para este CPF
@@ -489,7 +489,7 @@ def alterar_status_agendamento(agendamentos):
     ]
     
     if not agendamentos_do_paciente:
-        print("Nenhum agendamento encontrado para este CPF.")
+        print("🔻Nenhum agendamento encontrado para este CPF.")
         return False
 
     # Se houver mais de um, o usuário deve escolher
@@ -531,7 +531,7 @@ def alterar_status_agendamento(agendamentos):
         while True:
             hora_final_str = input("Digite a HORA FINAL da consulta (HH:MM): ").strip()
             if not hora_final_str:
-                print("Erro: A hora final é obrigatória.")
+                print("❌ Erro: A hora final é obrigatória.")
                 continue
             hora_final_valida = validar_horario(hora_final_str)
             if hora_final_valida:
@@ -541,7 +541,7 @@ def alterar_status_agendamento(agendamentos):
                     agendamento_alvo["HoraFinal"] = hora_final_valida
                     break
             else:
-                print("Erro: horário inválido (formato HH:MM).")
+                print("❌ Erro: horário inválido (formato HH:MM).")
                 
     elif opcao == "3":
         novo_status = "Ativo"
@@ -574,7 +574,7 @@ def buscar_consultas_realizadas(agendamentos):
     ]
     
     if not consultas_realizadas:
-        print("Nenhum 'Atendimento Realizado' encontrado para este CPF.")
+        print("🔻Nenhum 'Atendimento Realizado' encontrado para este CPF.")
         return
 
     print(f"Exibindo {len(consultas_realizadas)} consulta(s) realizada(s) para o CPF {cpf}:")
@@ -587,20 +587,20 @@ def buscar_consultas_realizadas(agendamentos):
 
 # --- 8. Excluir Paciente (ALTERADO) ---
 def excluir_paciente(pacientes, agendamentos):
-    print("\n<<< 8. Excluir Paciente (Registro) >>>")
+    print("\n8️⃣  Excluir Paciente (Registro)")
     cpf = input("Digite o CPF (11 dígitos) do paciente a excluir: ").strip()
     
     paciente_encontrado = buscar_paciente_por_cpf(cpf, pacientes)
             
     if not paciente_encontrado:
-        print("Paciente não cadastrado.")
+        print("🔻Paciente não cadastrado.")
         return False
 
-    print(f"!! ATENÇÃO !!")
+    print(f"‼️  ATENÇÃO  ‼️")
     print(f"Você está prestes a excluir o registro do paciente: {paciente_encontrado['NomeCompleto']}")
     print("Isso NÃO excluirá os agendamentos dele (eles permanecerão no histórico).")
     
-    if input("Confirmar exclusão? (S/N): ").strip().upper() != 'S':
+    if input("❗Confirmar exclusão? (S/N): ").strip().upper() != 'S':
         print("Exclusão cancelada.")
         return False
 
@@ -618,7 +618,7 @@ def main():
     dados_modificados = False # Flag para saber se precisa salvar
 
     while True:
-        print("\n===== MENU CLÍNICA MWLTYNHO =====\n")
+        print("\n◁ MENU CLÍNICA MWLTYNHO ▷\n")
         print("1 - Cadastrar Paciente")
         print("2 - Realizar Agendamento")
         print("3 - Listar Pacientes (Registros)")
@@ -628,7 +628,7 @@ def main():
         print("7 - Buscar Consultas Realizadas (Histórico)")
         print("8 - Excluir Paciente (Registro)")
         print("9 - Sair\n")
-        opcao = input("Escolha uma opção: ")
+        opcao = input("∷ Escolha uma opção: ")
 
         # Reseta o flag no início de cada loop
         dados_modificados = False
