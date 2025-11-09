@@ -5,6 +5,10 @@ from datetime import datetime
 # NOVO: O arquivo agora guarda um dicionário com pacientes E agendamentos
 ARQUIVO_DADOS = Path("clinica_dados.json")
 
+# NOVO: Informações da Clínica (Conforme solicitado)
+NOME_CLINICA = "Clinica Mwltynho"
+ENDERECO_CLINICA = "Avenida Tharzam, 371 Escoob City - PM"
+
 # --- Funções utilitárias ---
 
 # ALTERADO: Carrega o novo formato de dados (dicionário)
@@ -78,32 +82,41 @@ def buscar_paciente_por_cpf(cpf, pacientes):
 def imprimir_paciente_registro(paciente, indice=None):
     """Imprime um bloco formatado com os dados de registro de um paciente."""
     if indice:
-        print(f"PACIENTE #{indice}")
+        print(f" PACIENTE #{indice}\n")
     
-    largura_label = 19
-    print(f"  {'Nome Completo:':<{largura_label}} {paciente.get('NomeCompleto', 'N/A')}")
-    print(f"  {'CPF:':<{largura_label}} {paciente.get('CPF', 'N/A')}")
-    print(f"  {'Nascimento:':<{largura_label}} {paciente.get('Data de Nascimento', 'N/A')}")
-    print(f"  {'Contato:':<{largura_label}} {formatar_telefone(paciente.get('DDD', ''), paciente.get('Telefone', ''))}")
-    print(f"  {'Endereço:':<{largura_label}} {paciente.get('Endereço', 'N/A')}")
-    print(f"  {'Local:':<{largura_label}} {paciente.get('Cidade', 'N/A')} - {paciente.get('Estado', 'N/A')}")
-    print(f"  {'Data de Cadastro:':<{largura_label}} {paciente.get('DataCadastro', 'N/A')}")
-    print(f"  {'Última Modificação:':<{largura_label}} {paciente.get('UltimaModificacao', 'N/A')}")
+    largura_label = 21
+    print(f" {'Nome Completo:':<{largura_label}} {paciente.get('NomeCompleto', 'N/A')}")
+    print(f" {'CPF:':<{largura_label}} {paciente.get('CPF', 'N/A')}")
+    print(f" {'Nascimento:':<{largura_label}} {paciente.get('Data de Nascimento', 'N/A')}")
+    print(f" {'Contato:':<{largura_label}} {formatar_telefone(paciente.get('DDD', ''), paciente.get('Telefone', ''))}")
+    print(f" {'Endereço:':<{largura_label}} {paciente.get('Endereço', 'N/A')}")
+    print(f" {'Local:':<{largura_label}} {paciente.get('Cidade', 'N/A')} - {paciente.get('Estado', 'N/A')}")
+    print(f" {'Data de Cadastro:':<{largura_label}} {paciente.get('DataCadastro', 'N/A')}")
+    print(f" {'Última Modificação:':<{largura_label}} {paciente.get('UltimaModificacao', 'N/A')}")
+    
+    # ALTERAÇÃO AQUI: Adiciona info da clínica na listagem
+    print(f" {'Local:':<{largura_label}} {NOME_CLINICA}")
+    print(f" {'Endereço:':<{largura_label}} {ENDERECO_CLINICA}")
+
 
 # NOVO: Função helper para imprimir dados de um AGENDAMENTO
 def imprimir_agendamento_detalhado(ag, indice=None):
     """Imprime um bloco formatado com os dados de um agendamento."""
     if indice:
-        print(f"AGENDAMENTO #{indice}")
+        print(f" AGENDAMENTO #{indice}\n")
     
-    largura_label = 15
-    print(f"  {'Data:':<{largura_label}} {ag.get('DataConsulta', 'N/A')}")
-    print(f"  {'Horário Início:':<{largura_label}} {ag.get('HorarioInicio', 'N/A')}")
-    print(f"  {'Status:':<{largura_label}} {ag.get('Status', 'N/A')}")
-    print(f"  {'Paciente:':<{largura_label}} {ag.get('NomeCompleto', 'N/A')}")
-    print(f"  {'CPF:':<{largura_label}} {ag.get('CPF', 'N/A')}")
-    print(f"  {'Médico:':<{largura_label}} {ag.get('Especialista', 'N/A')}")
-    print(f"  {'Horário Final:':<{largura_label}} {ag.get('HoraFinal', 'N/A')}")
+    largura_label = 18
+    print(f" {'Data:':<{largura_label}} {ag.get('DataConsulta', 'N/A')}")
+    print(f" {'Horário Início:':<{largura_label}} {ag.get('HorarioInicio', 'N/A')}")
+    print(f" {'Status:':<{largura_label}} {ag.get('Status', 'N/A')}")
+    print(f" {'Paciente:':<{largura_label}} {ag.get('NomeCompleto', 'N/A')}")
+    print(f" {'CPF:':<{largura_label}} {ag.get('CPF', 'N/A')}")
+    print(f" {'Médico:':<{largura_label}} {ag.get('Especialista', 'N/A')}")
+    print(f" {'Horário Final:':<{largura_label}} {ag.get('HoraFinal', 'N/A')}")
+
+    # ALTERAÇÃO AQUI: Adiciona info da clínica na listagem
+    print(f" {'Local:':<{largura_label}} {NOME_CLINICA}")
+    print(f" {'Endereço:':<{largura_label}} {ENDERECO_CLINICA}")
 
 # (Função formatar_telefone não precisa de mudanças)
 def formatar_telefone(ddd, telefone):
@@ -121,8 +134,8 @@ def formatar_telefone(ddd, telefone):
 
 # --- 1. Cadastrar Paciente (ALTERADO) ---
 def cadastrar_paciente(pacientes):
-    print("\n--- 1. Novo Cadastro de Paciente ---")
-    print("Insira os dados de registro do paciente. (Isso não cria um agendamento).")
+    print("\n1️⃣  Novo Cadastro de Paciente")
+    print("📑 Insira os dados de registro do paciente. (Isso não cria um agendamento).")
 
     # ALTERADO: Pede Nome Completo
     while True:
@@ -191,13 +204,19 @@ def cadastrar_paciente(pacientes):
         "UltimaModificacao": "N/A"
     }
     pacientes.append(paciente_novo)
-    # Nota: A função 'main' que chamou esta, será responsável por salvar.
-    print("\n✅ Paciente cadastrado com sucesso!\n")
+    
+    print("\n✅ Paciente cadastrado com sucesso!")
+    
+    # NOVO: Adiciona informações da clínica
+    largura_label = 19 # Mesma largura da função de imprimir registro
+    print(f"  {'Local:':<{largura_label}} {NOME_CLINICA}")
+    print(f"  {'Endereço:':<{largura_label}} {ENDERECO_CLINICA}\n")
+    
     return True # Sinaliza sucesso
 
 # --- 2. Realizar Agendamento (NOVO) ---
 def realizar_agendamento(pacientes, agendamentos):
-    print("\n--- 2. Realizar Novo Agendamento ---")
+    print("\n2️⃣  Realizar Novo Agendamento")
     
     nome_paciente = None
     cpf_paciente = None
@@ -284,17 +303,24 @@ def realizar_agendamento(pacientes, agendamentos):
         "Status": "Ativo"
     }
     agendamentos.append(novo_agendamento)
-    print("\n✅ Agendamento realizado com sucesso!\n")
+    
+    print("\n✅ Agendamento realizado com sucesso!")
+    
+    # NOVO: Adiciona informações da clínica
+    largura_label = 15 # Mesma largura da função de imprimir agendamento
+    print(f"  {'Local:':<{largura_label}} {NOME_CLINICA}")
+    print(f"  {'Endereço:':<{largura_label}} {ENDERECO_CLINICA}\n")
+    
     return True # Sinaliza sucesso
 
 # --- 3. Listar Pacientes (ALTERADO) ---
 def listar_pacientes(pacientes):
-    print("\n--- 3. Pacientes Cadastrados ---")
+    print("\n3️⃣  Pacientes Cadastrados")
     if not pacientes:
-        print("\nNenhum paciente cadastrado ainda.\n")
+        print("\n❌ Nenhum paciente cadastrado ainda.\n")
         return
 
-    separador = "-" * 40 
+    separador = "-" * 63 
     print(separador)
 
     for i, paciente in enumerate(pacientes, start=1):
@@ -318,9 +344,9 @@ def get_sort_key_agendamento(ag):
     return data_obj
 
 def listar_agendamentos(agendamentos):
-    print("\n--- 4. Agendamentos ---")
+    print("\n4️⃣  Agendamentos")
     if not agendamentos:
-        print("\nNenhum agendamento encontrado.\n")
+        print("\n❌ Nenhum agendamento encontrado.\n")
         return
 
     # Filtra apenas agendamentos 'Ativos'
@@ -333,8 +359,8 @@ def listar_agendamentos(agendamentos):
     # NOVO: Ordena pela chave (data + hora)
     agendamentos_ordenados = sorted(agendamentos_ativos, key=get_sort_key_agendamento)
     
-    print("(Mostrando agendamentos 'Ativos' ordenados por data e hora)")
-    separador = "-" * 40 
+    print("📆 Mostrando agendamentos 'Ativos' ordenados por data e hora")
+    separador = "-" * 60 
     print(separador)
     
     for i, ag in enumerate(agendamentos_ordenados, start=1):
@@ -345,7 +371,7 @@ def listar_agendamentos(agendamentos):
 
 # --- 5. Editar Paciente (ALTERADO E CORRIGIDO) ---
 def editar_paciente(pacientes, agendamentos): # <--- ALTERADO: Recebe agendamentos
-    print("\n--- 5. Editar Paciente ---")
+    print("\n<<< 5. Editar Paciente >>>")
     cpf = input("Digite o CPF (11 dígitos) do paciente a editar: ").strip()
     
     paciente_encontrado = buscar_paciente_por_cpf(cpf, pacientes)
@@ -454,7 +480,7 @@ def editar_paciente(pacientes, agendamentos): # <--- ALTERADO: Recebe agendament
 
 # --- 6. Alterar Status do Agendamento (ALTERADO) ---
 def alterar_status_agendamento(agendamentos):
-    print("\n--- 6. Alterar Status do Agendamento ---")
+    print("\n<<< 6. Alterar Status do Agendamento >>>")
     cpf = input("Digite o CPF do paciente para buscar agendamentos: ").strip()
     
     # Encontra TODOS os agendamentos para este CPF
@@ -552,16 +578,16 @@ def buscar_consultas_realizadas(agendamentos):
         return
 
     print(f"Exibindo {len(consultas_realizadas)} consulta(s) realizada(s) para o CPF {cpf}:")
-    separador = "-" * 40
+    separador = "-" * 60
     print(separador)
     
     for ag in consultas_realizadas:
-        imprimir_agendamento_detalhado(ag)
+        imprimir_agendamento_detalhado(ag) # Esta função já foi alterada
         print(separador)
 
 # --- 8. Excluir Paciente (ALTERADO) ---
 def excluir_paciente(pacientes, agendamentos):
-    print("\n--- 8. Excluir Paciente (Registro) ---")
+    print("\n<<< 8. Excluir Paciente (Registro) >>>")
     cpf = input("Digite o CPF (11 dígitos) do paciente a excluir: ").strip()
     
     paciente_encontrado = buscar_paciente_por_cpf(cpf, pacientes)
@@ -592,7 +618,7 @@ def main():
     dados_modificados = False # Flag para saber se precisa salvar
 
     while True:
-        print("\n===== MENU CLÍNICA =====")
+        print("\n===== MENU CLÍNICA MWLTYNHO =====\n")
         print("1 - Cadastrar Paciente")
         print("2 - Realizar Agendamento")
         print("3 - Listar Pacientes (Registros)")
@@ -601,7 +627,7 @@ def main():
         print("6 - Alterar Status do Agendamento")
         print("7 - Buscar Consultas Realizadas (Histórico)")
         print("8 - Excluir Paciente (Registro)")
-        print("9 - Sair")
+        print("9 - Sair\n")
         opcao = input("Escolha uma opção: ")
 
         # Reseta o flag no início de cada loop

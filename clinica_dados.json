@@ -10,7 +10,7 @@
             "DDD": "44",
             "Telefone": "998376302",
             "DataCadastro": "08/11/2025 às 13:26:46",
-            "UltimaModificacao": "08/11/2025 às 13:38:09"
+            "UltimaModificacao": "08/11/2025 às 13:54:07"
         }
     ],
     "agendamentos": [
@@ -23,6 +23,17 @@
             "HorarioInicio": "14:25",
             "HoraFinal": "N/A",
             "DataAgendamento": "08/11/2025 às 13:28:41",
+            "Status": "Ativo"
+        },
+        {
+            "NomeCompleto": "Micaela Neves Nunes Paulista",
+            "CPF": "12345678911",
+            "PacienteCadastrado": false,
+            "DataConsulta": "15/11/2025",
+            "Especialista": "Psiquiátra",
+            "HorarioInicio": "16:20",
+            "HoraFinal": "N/A",
+            "DataAgendamento": "08/11/2025 às 13:44:23",
             "Status": "Ativo"
         }
     ]
